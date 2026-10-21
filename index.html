@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>高风险康复治疗项目——推拿与正骨</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#0d2036;
+    --ink2:#2a4a6b;
+    --ink3:#5a7288;
+    --teal:#0e9c96;
+    --teal-d:#0a7a76;
+    --red:#cf2b40;
+    --red-l:#fdeef0;
+    --red-d:#a51f31;
+    --amber:#b5730a;
+    --paper:#f2f6f9;
+    --line:#dde7ee;
+    --s:1;
+  }
+  html,body{height:100%}
+  body{
+    background:#08121c;
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Source Han Sans SC","Noto Sans SC",sans-serif;
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  #viewport{
+    position:fixed;inset:0;display:grid;place-items:center;overflow:hidden;
+    background:radial-gradient(circle at 50% -10%,#17344d 0%,#0a1622 55%,#070f18 100%);
+  }
+  #stage{
+    width:1280px;height:720px;position:relative;
+    transform:scale(var(--s));transform-origin:center center;
+    background:#fff;border-radius:4px;overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.6);
+  }
+
+  /* ---------- 幻灯片基础 ---------- */
+  .slide{
+    position:absolute;inset:0;background:#fff;
+    padding:46px 62px 44px;
+    display:flex;flex-direction:column;
+    opacity:0;visibility:hidden;
+    transition:opacity .32s ease;
+  }
+  .slide.active{opacity:1;visibility:visible}
+  .slide::before{
+    content:"";position:absolute;left:0;top:0;height:5px;width:100%;
+    background:linear-gradient(90deg,var(--teal),#45bfae 48%,#e2b64c);
+  }
+  .slide.cover::before{
+    background:linear-gradient(90deg,#0e9c96,#4fd1c5 30%,#e2b64c 75%,#cf2b40);
+    height:7px;
+  }
+
+  .kicker{
+    display:inline-flex;align-items:center;gap:9px;
+    font-size:12.5px;letter-spacing:.18em;font-weight:700;
+    color:var(--teal-d);margin-bottom:10px;
+  }
+  .kicker::before{content:"";width:24px;height:3px;background:var(--teal);border-radius:2px}
+
+  .slide h1{
+    font-size:33px;line-height:1.28;font-weight:800;letter-spacing:-.4px;
+    color:var(--ink);margin-bottom:16px;
+  }
+  .slide h1 em{font-style:normal;color:var(--red)}
+  .slide h1 .t{color:var(--teal-d)}
+
+  .body{flex:1;display:flex;flex-direction:column;gap:16px;justify-content:center;min-height:0}
+  .slide.active .body{animation:fadeUp .42s ease both}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  /* ---------- 通用组件 ---------- */
+  .quote{
+    border-left:4px solid var(--teal);
+    background:linear-gradient(90deg,#eef8f7,#f8fbfc);
+    padding:14px 20px;border-radius:0 6px 6px 0;
+    font-size:16.5px;line-height:1.6;color:var(--ink2);
+  }
+  .quote b{color:var(--ink)}
+
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+
+  .card{
+    background:var(--paper);border:1px solid var(--line);
+    border-radius:8px;padding:15px 16px 12px;
+    border-top:3px solid var(--teal);
+    display:flex;flex-direction:column;gap:8px;
+  }
+  .card .ttl{font-size:16.5px;font-weight:800;color:var(--ink);line-height:1.4}
+  .card .ttl .n{color:var(--teal);font-weight:900;margin-right:6px}
+  .card p{font-size:13.6px;line-height:1.62;color:var(--ink2)}
+  .card.red{border-top-color:var(--red);background:var(--red-l);border-color:#f6d6db}
+  .card.red .ttl{color:var(--red-d)}
+  .card.amber{border-top-color:var(--amber);background:#fdf7ec;border-color:#f0e2c8}
+  .card.amber .ttl{color:var(--amber)}
+
+  /* ---------- 示意图 ---------- */
+  .diagram{
+    flex:1;min-height:130px;margin-top:2px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .diagram svg{width:100%;height:auto;max-height:180px;display:block}
+  .diagram .dl{font-size:10px;font-weight:700;fill:#5a7288}
+
+  ul.list{list-style:none;display:flex;flex-direction:column;gap:9px}
+  ul.list li{
+    position:relative;padding-left:20px;
+    font-size:15.5px;line-height:1.62;color:var(--ink2);
+  }
+  ul.list li::before{
+    content:"";position:absolute;left:2px;top:.62em;
+    width:6px;height:6px;border-radius:50%;background:var(--teal);
+  }
+  ul.list li b{color:var(--ink);font-weight:700}
+  ul.list.danger li::before{background:var(--red)}
+  ul.list.danger li{font-size:15.5px}
+  ul.list.danger li b{color:var(--red-d)}
+
+  .panel{
+    background:var(--paper);border:1px solid var(--line);
+    border-radius:8px;padding:18px 20px;
+  }
+  .panel .pt{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:12px;
+    display:flex;align-items:center;gap:8px}
+  .panel .pt::before{content:"";width:4px;height:15px;border-radius:2px;background:var(--teal)}
+  .panel.red{background:var(--red-l);border-color:#f6d6db}
+  .panel.red .pt{color:var(--red-d)}
+  .panel.red .pt::before{background:var(--red)}
+  .panel.amber{background:#fdf7ec;border-color:#f0e2c8}
+  .panel.amber .pt{color:var(--amber)}
+  .panel.amber .pt::before{background:var(--amber)}
+
+  .banner{
+    border-radius:8px;padding:14px 22px;
+    background:linear-gradient(90deg,#0d2036,#1b3a56);
+    color:#eaf3f8;font-size:16px;line-height:1.6;
+    display:flex;align-items:center;gap:12px;
+  }
+  .banner .lab{
+    flex:0 0 auto;font-size:12px;font-weight:800;letter-spacing:.12em;
+    background:var(--teal);color:#04201e;padding:4px 9px;border-radius:4px;
+  }
+  .banner.red{background:linear-gradient(90deg,#7d1424,#b32338)}
+  .banner.red .lab{background:#ffd7dd;color:#7d1424}
+  .banner b{color:#fff}
+
+  /* ---------- 封面 ---------- */
+  .cover-body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:22px}
+  .cover h1{font-size:52px;letter-spacing:-1px;line-height:1.2;margin:0}
+  .cover .sub{font-size:20px;color:var(--ink3);line-height:1.6;max-width:900px}
+  .cover .line{width:88px;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--teal),#e2b64c)}
+  .cover .meta{font-size:18px;color:var(--ink2);line-height:2.1;margin-top:10px}
+  .cover .meta span{color:var(--ink3);margin-right:14px}
+
+  /* ---------- 案例卡片 ---------- */
+  .case{
+    background:var(--paper);border:1px solid var(--line);border-radius:8px;
+    padding:15px 17px;display:flex;flex-direction:column;gap:7px;
+    border-left:4px solid var(--red);
+  }
+  .case .name{font-size:15.5px;font-weight:800;color:var(--red-d)}
+  .case .name small{font-weight:600;color:var(--ink3);font-size:12.5px;margin-left:6px}
+  .case p{font-size:13.8px;line-height:1.72;color:var(--ink2)}
+  .case p b{color:var(--ink)}
+
+  .stat{
+    display:flex;align-items:center;gap:16px;
+    background:#fdf7ec;border:1px solid #f0e2c8;border-left:4px solid var(--amber);
+    border-radius:8px;padding:14px 20px;font-size:15px;line-height:1.6;color:var(--ink2);
+  }
+  .stat .big{font-size:30px;font-weight:900;color:var(--amber);letter-spacing:-1px;flex:0 0 auto}
+  .stat b{color:var(--ink)}
+
+  /* ---------- 结语 ---------- */
+  .ending{flex:1;display:flex;flex-direction:column;justify-content:center;gap:26px}
+  .ending .lead{font-size:19px;line-height:1.75;color:var(--ink2);max-width:1000px}
+  .ending .lead b{color:var(--red-d)}
+  .ending .big{
+    font-size:42px;font-weight:900;line-height:1.5;letter-spacing:-.5px;
+    color:var(--ink);
+  }
+  .ending .big em{font-style:normal;color:var(--red)}
+  .ending .big .g{color:var(--teal-d)}
+
+  /* ---------- UI ---------- */
+  .ui{position:fixed;left:0;right:0;bottom:0;pointer-events:none;z-index:20}
+  .progress-track{height:3px;background:rgba(255,255,255,.12)}
+  #progress{height:100%;width:9.1%;background:linear-gradient(90deg,var(--teal),#e2b64c);transition:width .3s ease}
+  .nav{
+    pointer-events:auto;
+    display:flex;align-items:center;gap:8px;
+    position:absolute;right:18px;bottom:16px;
+    background:rgba(10,22,34,.72);backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:999px;padding:6px 8px;
+  }
+  .nav button{
+    background:rgba(255,255,255,.1);border:none;color:#dbe9f2;
+    width:32px;height:32px;border-radius:50%;cursor:pointer;
+    font-size:16px;line-height:1;display:grid;place-items:center;
+    transition:background .18s;
+  }
+  .nav button:hover{background:var(--teal);color:#04201e}
+  .nav #counter{color:#cfe2ee;font-size:13px;font-variant-numeric:tabular-nums;padding:0 6px;min-width:56px;text-align:center}
+
+  /* ---------- 打印 ---------- */
+  @page{size:1280px 720px;margin:0}
+  @media print{
+    body{overflow:visible;background:#fff}
+    #viewport{position:static;display:block;overflow:visible;background:#fff}
+    #stage{transform:none!important;width:auto;height:auto;box-shadow:none;border-radius:0}
+    .slide{
+      position:relative;opacity:1!important;visibility:visible!important;
+      width:1280px;height:720px;page-break-after:always;break-after:page;
+    }
+    .slide.active .body{animation:none}
+    .ui{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="viewport">
+  <div id="stage">
+
+    <!-- ============ 1 封面 ============ -->
+    <section class="slide cover active">
+      <div class="cover-body">
+        <div class="line"></div>
+        <h1>高风险康复治疗项目<br><span class="t">推拿与正骨</span></h1>
+        <p class="sub">适应范围 · 禁忌症 · 到底“高危”在哪里</p>
+        <div class="meta">
+          <div><span>主讲人</span>刘文豪</div>
+          <div><span>时间</span>2026 年 10 月 22 日</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 2 认知纠偏 ============ -->
+    <section class="slide">
+      <div class="kicker">前提</div>
+      <h1>先纠正一个全院都该知道的前提：<br>正骨不是“保健”，是<em>医疗行为</em></h1>
+      <div class="body">
+        <div class="quote">
+          北京中医院推拿科医生在央视采访中明确：<b>“和正骨相关的操作是绝对的医疗行为，不是简单的保健行为。”</b>
+        </div>
+        <div class="grid3">
+          <div class="card">
+            <div class="ttl"><span class="n">01</span>不是“谁都可以做”</div>
+            <p>实施脊柱正骨的人员应具备中医类或中西医结合类执业医师资格。</p>
+          </div>
+          <div class="card">
+            <div class="ttl"><span class="n">02</span>不是“摸一摸就能做”</div>
+            <p>没有影像学评估就掰动关节，“既不科学也不安全”。</p>
+          </div>
+          <div class="card">
+            <div class="ttl"><span class="n">03</span>不是“咔咔响就是有效”</div>
+            <p>正骨是对紊乱一两毫米的脊柱做精细调整，“类似于眼睛里进了一粒沙子，要特别小心仔细地翻找”，而不是“骨头歪了掰正”。</p>
+          </div>
+        </div>
+        <div class="banner">
+          <span class="lab">全院一句话</span>
+          <span>在康复医院里，推拿正骨的风险不是“手法重不重”，而是<b>“该不该做、谁来做、做之前看没看片子”</b>。</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 3 适应范围 ============ -->
+    <section class="slide">
+      <div class="kicker">适应范围</div>
+      <h1>什么情况下“可以考虑”做</h1>
+      <div class="body">
+        <div class="grid2">
+          <div class="panel">
+            <div class="pt">经评估后可考虑的情形</div>
+            <ul class="list">
+              <li><b>脊柱相关退行性疾病：</b>颈型 / 神经根型颈椎病、轻中度腰椎间盘突出症、腰椎小关节紊乱。</li>
+              <li><b>脊柱功能紊乱：</b>颈椎、胸椎、腰椎的椎体错位或功能活动受限。</li>
+              <li><b>青少年特发性脊柱侧弯：</b>轻中度的非手术矫治。</li>
+              <li><b>脊柱力学失衡相关：</b>肌肉劳损、筋膜炎。</li>
+            </ul>
+          </div>
+          <div class="panel red">
+            <div class="pt">必须同时说清楚</div>
+            <p style="font-size:15.5px;line-height:1.75;color:var(--ink2)">
+              适应证<b style="color:var(--red-d)">不是“诊断名称对了就能做”</b>。央视采访中医生强调，正骨至少要满足 2—4 项前提条件；
+              如果只是“摸起来歪了”而症状不明显，强行调正反而可能打破身体已经建立的平衡。
+            </p>
+            <div style="margin-top:14px;padding:12px 16px;background:#fff;border-radius:6px;border:1px dashed #f0b8c2;font-size:15px;line-height:1.7;color:var(--ink2)">
+              <b style="color:var(--red-d)">适应证是入口，评估才是通行证。</b>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 4 绝对禁忌 ============ -->
+    <section class="slide">
+      <div class="kicker">禁忌症 · 上</div>
+      <h1>先记住“<em>绝对红线</em>”：这些不是“小心一点做”，而是<b>不做</b></h1>
+      <div class="body">
+        <div class="grid2">
+          <ul class="list danger">
+            <li>脊柱<b>骨折、脱位</b>或急性外伤</li>
+            <li>脊柱<b>肿瘤或感染</b>（结核、化脓性感染等）</li>
+            <li><b>重度骨质疏松</b>或明显骨质破坏</li>
+            <li>脊柱手术后<b>不稳定期</b></li>
+          </ul>
+          <ul class="list danger">
+            <li><b>重度腰椎滑脱</b>（Ⅱ度以上）</li>
+            <li><b>脊髓受压征象明显</b>或进行性神经损伤</li>
+            <li><b>妊娠期</b>（尤其中晚期）</li>
+            <li>严重心脑血管疾病或重要脏器功能不全，无法耐受治疗</li>
+          </ul>
+        </div>
+        <div class="banner red">
+          <span class="lab">最要盯死</span>
+          <span><b>脊髓型颈椎病绝对禁忌推拿复位。</b>典型表现是<b>手笨拙、走路踩棉花感、大小便异常</b>；在此状态下做旋转、扳动，可能造成<b>即刻瘫痪</b>，甚至<b>终生高位截瘫</b>。</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 5 相对禁忌与筛查缺口 ============ -->
+    <section class="slide">
+      <div class="kicker">禁忌症 · 下</div>
+      <h1>容易被“<em>漏过去</em>”的相对禁忌，与真正的筛查缺口</h1>
+      <div class="body">
+        <div class="grid2">
+          <div class="panel amber">
+            <div class="pt">相对禁忌：先处理 / 先排除，再决定</div>
+            <ul class="list">
+              <li>高热或急性感染期</li>
+              <li>出血性疾病或正在抗凝治疗</li>
+              <li>施术部位皮肤破损、感染或炎症</li>
+              <li>严重心理障碍或无法配合治疗</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <div class="pt">比清单更关键的是“筛查动作”</div>
+            <ul class="list">
+              <li>详细病史</li>
+              <li>脊柱专科体格检查</li>
+              <li><b>必要影像学评估</b>（X 线为首选，必要时 CT 或 MRI）</li>
+              <li><b>知情同意</b>——之后才谈操作</li>
+            </ul>
+          </div>
+        </div>
+        <div class="banner">
+          <span class="lab">对照</span>
+          <span>央视报道中那位“不用拍片子，我用手一摸就知道”的操作师，恰恰是在<b>没有影像评估</b>的情况下强行松动关节，事后当事人出现髋、颈、腰游移性疼痛，检查只能看到“微小损伤的累积”。<b>没有片子的“手感”，不是技术，是赌博。</b></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 6 高风险三张底牌 ============ -->
+    <section class="slide">
+      <div class="kicker">机制</div>
+      <h1>高风险到底“高”在哪里：<em>三张底牌</em></h1>
+      <div class="body">
+        <div class="grid3">
+
+          <!-- 卡片 1 -->
+          <div class="card red">
+            <div class="ttl"><span class="n">01</span>椎动脉夹层</div>
+            <p><b style="color:var(--red-d)">颈椎旋转 / 扳法 → 夹层 → 后循环卒中。</b><br>
+            椎动脉 V2 段被骨头紧紧包裹，“没有缓冲空间”，扭转时就像“夹在门缝里的水管”；内膜撕裂、血栓脱落后可堵死小脑供血血管。</p>
+            <div class="diagram">
+              <svg viewBox="0 0 340 160" role="img" aria-label="椎动脉夹层示意">
+                <defs>
+                  <marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto">
+                    <path d="M0 0 L10 5 L0 10 z" fill="#7b93a6"/>
+                  </marker>
+                </defs>
+                <g>
+                  <circle cx="52" cy="64" r="36" fill="#efe6d8" stroke="#bda98c" stroke-width="1.6"/>
+                  <circle cx="52" cy="64" r="20" fill="#ffffff"/>
+                  <circle cx="52" cy="64" r="16" fill="#f3b9c1"/>
+                  <circle cx="52" cy="64" r="9" fill="#cf2b40"/>
+                  <text x="52" y="150" text-anchor="middle" class="dl">骨性包裹·无缓冲</text>
+                </g>
+                <path d="M94 64 H116" stroke="#7b93a6" stroke-width="1.5" marker-end="url(#m1)"/>
+                <g>
+                  <circle cx="158" cy="64" r="36" fill="#efe6d8" stroke="#bda98c" stroke-width="1.6"/>
+                  <circle cx="158" cy="64" r="20" fill="#ffffff"/>
+                  <circle cx="158" cy="64" r="16" fill="#8e1224"/>
+                  <ellipse cx="163" cy="64" rx="5.5" ry="9" fill="#cf2b40"/>
+                  <text x="158" y="150" text-anchor="middle" class="dl">内膜撕裂·壁内血肿</text>
+                </g>
+                <path d="M200 64 H222" stroke="#7b93a6" stroke-width="1.5" marker-end="url(#m1)"/>
+                <g>
+                  <path d="M264 130 C258 110 270 94 264 76" fill="none" stroke="#cf2b40" stroke-width="9" stroke-linecap="round"/>
+                  <circle cx="264" cy="72" r="7.5" fill="#8e1224"/>
+                  <path d="M264 64 C262 56 266 50 264 42" fill="none" stroke="#f0b8c2" stroke-width="7" stroke-linecap="round" stroke-dasharray="3 4"/>
+                  <circle cx="278" cy="34" r="14" fill="#fbe3e6" stroke="#e79aa8" stroke-width="1.3" stroke-dasharray="3 3"/>
+                  <text x="278" y="37" text-anchor="middle" font-size="7.5" fill="#a51f31" font-weight="700">缺血</text>
+                  <text x="264" y="150" text-anchor="middle" class="dl">栓子脱落·堵死血管</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- 卡片 2 -->
+          <div class="card red">
+            <div class="ttl"><span class="n">02</span>脊髓损伤</div>
+            <p><b style="color:var(--red-d)">脊髓型颈椎病 / 椎管狭窄 → 手法压迫加重 → 截瘫。</b><br>
+            颈髓在椎管内缓冲间隙本就缩小，不当旋转或按压可造成脊髓剧烈撞击，严重时即刻瘫痪或终生高位截瘫。</p>
+            <div class="diagram">
+              <svg viewBox="0 0 340 160" role="img" aria-label="脊髓受压示意">
+                <defs>
+                  <marker id="m2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto">
+                    <path d="M0 0 L10 5 L0 10 z" fill="#7b93a6"/>
+                  </marker>
+                  <marker id="m3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto">
+                    <path d="M0 0 L10 5 L0 10 z" fill="#cf2b40"/>
+                  </marker>
+                </defs>
+                <g>
+                  <ellipse cx="84" cy="72" rx="46" ry="37" fill="#efe6d8" stroke="#bda98c" stroke-width="1.6"/>
+                  <ellipse cx="84" cy="72" rx="28" ry="23" fill="#ffffff"/>
+                  <ellipse cx="84" cy="72" rx="15" ry="12" fill="#ffe3a3" stroke="#d9a93e" stroke-width="1.4"/>
+                  <text x="84" y="150" text-anchor="middle" class="dl">正常缓冲间隙</text>
+                </g>
+                <path d="M140 72 H172" stroke="#7b93a6" stroke-width="1.5" marker-end="url(#m2)"/>
+                <g>
+                  <ellipse cx="236" cy="72" rx="46" ry="37" fill="#efe6d8" stroke="#bda98c" stroke-width="1.6"/>
+                  <ellipse cx="236" cy="72" rx="28" ry="15" fill="#ffffff"/>
+                  <ellipse cx="236" cy="78" rx="23" ry="5.5" fill="#f5b7a8" stroke="#cf2b40" stroke-width="1.4"/>
+                  <path d="M236 10 V38" stroke="#cf2b40" stroke-width="2.6" marker-end="url(#m3)"/>
+                  <text x="252" y="26" font-size="8.5" fill="#cf2b40" font-weight="700">手法压迫</text>
+                  <text x="236" y="150" text-anchor="middle" class="dl">脊髓受压·间隙消失</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- 卡片 3 -->
+          <div class="card red">
+            <div class="ttl"><span class="n">03</span>骨折</div>
+            <p><b style="color:var(--red-d)">骨质疏松 / 骨破坏 → 骨折。</b><br>
+            椎体脆弱时，用力按压脊柱、大幅度扳动、踩背等操作都可能造成椎体压缩性骨折或肋骨骨折。</p>
+            <div class="diagram">
+              <svg viewBox="0 0 340 160" role="img" aria-label="椎体压缩性骨折示意">
+                <defs>
+                  <marker id="m4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto">
+                    <path d="M0 0 L10 5 L0 10 z" fill="#7b93a6"/>
+                  </marker>
+                  <marker id="m5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto">
+                    <path d="M0 0 L10 5 L0 10 z" fill="#cf2b40"/>
+                  </marker>
+                </defs>
+                <g>
+                  <rect x="48" y="50" width="60" height="50" rx="5" fill="#efe6d8" stroke="#bda98c" stroke-width="1.6"/>
+                  <line x1="48" y1="50" x2="108" y2="50" stroke="#bda98c" stroke-width="2.6"/>
+                  <line x1="48" y1="100" x2="108" y2="100" stroke="#bda98c" stroke-width="2.6"/>
+                  <text x="78" y="150" text-anchor="middle" class="dl">正常椎体</text>
+                </g>
+                <path d="M124 75 H158" stroke="#7b93a6" stroke-width="1.5" marker-end="url(#m4)"/>
+                <g>
+                  <path d="M200 74 q30 -16 60 0 v26 h-60 z" fill="#efe6d8" stroke="#bda98c" stroke-width="1.6"/>
+                  <path d="M192 50 V100" stroke="#c7d3dc" stroke-width="1.4" stroke-dasharray="3 3"/>
+                  <path d="M216 60 l7 7 l-6 8" fill="none" stroke="#cf2b40" stroke-width="1.8"/>
+                  <path d="M232 14 V38" stroke="#cf2b40" stroke-width="2.6" marker-end="url(#m5)"/>
+                  <text x="230" y="150" text-anchor="middle" class="dl">压缩性骨折</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="banner">
+          <span class="lab">一句话</span>
+          <span>推拿正骨的高风险，不在“疼一下”，在于它作用在<b>血管、脊髓、脆弱骨质</b>这三个“一碰就可能不可逆”的靶点上。</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 7 案例一 ============ -->
+    <section class="slide">
+      <div class="kicker">案例一 · 央视网 2025 年 3 月</div>
+      <h1>央视调查里的<em>三个普通人</em></h1>
+      <div class="body">
+        <p style="font-size:15.5px;color:var(--ink2);line-height:1.7">
+          被“咔咔几下解决疼痛”吸引的年轻人，正在困扰于正骨后遗症。
+        </p>
+        <div class="grid3">
+          <div class="case">
+            <div class="name">林小凡<small>广东</small></div>
+            <p>腰部拉伤后尝试正骨，“一整套做下来也就是几分钟”。此后 3 个月内相继出现<b>颈椎错位、胸椎拉伤、交感神经紊乱引发的心悸</b>，采访时颞下颌关节仍在弹响。他用“暴力地掰我的腰”“用一根绳子强硬地拉脖子”来形容那次体验。</p>
+          </div>
+          <div class="case">
+            <div class="name">得伟<small>28 岁</small></div>
+            <p>在运动康复机构花 160 元做“疼痛管理”，操作师是健身教练转行，<b>没有拍片子</b>，在“没事，大部分人都会响”的安慰中强行松动关节。两周后髋痛未好，全身关节相继疼痛和响动，“今天是胳膊疼，明天是脖子疼”。</p>
+          </div>
+          <div class="case">
+            <div class="name">张宝丰</div>
+            <p>腰椎间盘突出本可微创处理，接受“退休骨科专家”正骨后，变成<b>腰椎滑脱、腰椎峡部裂</b>，最终在后背打 6 根钉子固定脊柱，术后卧床 3 个月。</p>
+          </div>
+        </div>
+        <div class="banner red">
+          <span class="lab">共同点</span>
+          <span>不是“手法太重”，而是：<b>操作者不具备医疗资质、没有影像评估、把医疗行为当成了保健服务。</b></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 8 案例二 ============ -->
+    <section class="slide">
+      <div class="kicker">案例二</div>
+      <h1>当“落枕”和“按摩”走向<em>中风</em></h1>
+      <div class="body">
+        <div class="grid2">
+          <div class="case">
+            <div class="name">案例 A · 落枕正骨</div>
+            <p>42 岁患者因落枕在小诊所接受颈部推拿正骨，术后出现头痛头晕、视物旋转、右侧面部及左侧肢体麻木、吞咽困难，半天后行走不稳。全脑血管造影提示<b>右侧椎动脉 V3 段闭塞，考虑夹层</b>；MRI 提示<b>脑桥急性脑梗死</b>。</p>
+          </div>
+          <div class="case">
+            <div class="name">案例 B · 家人按摩</div>
+            <p>47 岁张先生让妻子按摩肩颈，“再重点”之后半小时突发眩晕，次日走路踩棉花、身体向左偏。确诊<b>右侧小脑大面积梗死</b>，右侧椎动脉 V2 段<b>夹层样改变</b>——外力挤压导致内膜撕裂，血栓脱落堵死小脑供血血管。</p>
+          </div>
+        </div>
+        <div class="stat">
+          <span class="big">10%—25%</span>
+          <span>45 岁以下青年卒中中，<b>10%—25% 与颈动脉或椎动脉夹层有关</b>，其中椎动脉夹层占比最高，达 <b>48.4%</b>。</span>
+        </div>
+        <div class="banner">
+          <span class="lab">警示</span>
+          <span>不是只有“正骨”才危险。<b>对颈部血管区的重手法按压、追求“咔哒”声的扳颈动作</b>，即使在非医疗场景中也可能造成不可逆的血管事件。美国心脏协会已明确警告：颈部推拿会显著增加中风风险。</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 9 全院红旗征 ============ -->
+    <section class="slide">
+      <div class="kicker">全院行动 · 识别红旗</div>
+      <h1>为什么<em>所有人</em>都要知道这些</h1>
+      <div class="body">
+        <p style="font-size:15.5px;color:var(--ink2);line-height:1.7">
+          所有人，都可能在第一时间接触到“想做推拿 / 正骨”的人。你们的角色不是“判断能不能做”，而是<b style="color:var(--teal-d)">识别红旗、拦住错误入口、把患者送到对的地方</b>。
+        </p>
+        <ul class="list danger" style="gap:11px">
+          <li><b>“走路像踩棉花”“手拿筷子笨了”“大小便突然控制不住”</b> —— 高度警惕脊髓型颈椎病，禁止任何扳颈操作。</li>
+          <li>近期<b>落枕 / 颈部外伤</b>后想做“扳一下” —— 先排除血管和骨性风险，不追求“咔哒”声。</li>
+          <li><b>高龄、驼背明显、身高比年轻时矮 3 厘米以上、长期吃激素</b> —— 警惕重度骨质疏松，按压和扳动都可能造成骨折。</li>
+          <li>有<b>高血压、糖尿病、高血脂、血管病史</b>，要做颈部手法 —— 属于需要格外谨慎评估的人群。</li>
+          <li>对方是<b>健身教练、保健按摩师、“祖传手法”</b>，说“不用拍片子，摸一下就知道” —— 这不是医疗评估，是风险信号。</li>
+        </ul>
+        <div class="banner">
+          <span class="lab">统一口径</span>
+          <span>“我们医院可以做推拿 / 正骨的科室，必须先由医生完成病史、查体和影像评估，再由具备资质的医师操作。”</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 10 落地四件事 ============ -->
+    <section class="slide">
+      <div class="kicker">落地</div>
+      <h1>来我院推拿/正骨，紧抓<em>四件事</em></h1>
+      <div class="body">
+        <div class="grid2" style="gap:16px">
+          <div class="card">
+            <div class="ttl"><span class="n">01</span>入口核查</div>
+            <p>推拿 / 正骨医嘱开具前，必须能看到<b>病史 + 专科查体 + 影像学依据</b>，缺一不进入操作环节。</p>
+          </div>
+          <div class="card">
+            <div class="ttl"><span class="n">02</span>资质锁定</div>
+            <p>脊柱正骨操作者须为<b>中医类 / 中西医结合类执业医师</b>。</p>
+          </div>
+          <div class="card">
+            <div class="ttl"><span class="n">03</span>知情同意与风险告知</div>
+            <p>尤其对颈椎旋转手法、高龄骨质疏松患者、有血管危险因素者，告知<b>椎动脉夹层、脊髓损伤、骨折</b>等风险，并记录在案。</p>
+          </div>
+          <div class="card">
+            <div class="ttl"><span class="n">04</span>病历与追溯</div>
+            <p>操作记录、影像资料、知情同意<b>当天归档</b>，不留在私人设备上。这不是“走流程”，是出事后唯一能还原真相、保护患者也保护医院的东西。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 11 结语 ============ -->
+    <section class="slide">
+      <div class="kicker">结语</div>
+      <h1>一句话带走</h1>
+      <div class="ending">
+        <p class="lead">
+          推拿正骨的高风险，高在<b>“不可逆”</b>：血管撕了不会自己长好，脊髓压了不一定能回来，骨头断了更不会“咔”一声复原。
+          对所有人来说，最需要记住的不是某一块肌肉怎么按，而是——
+        </p>
+        <div class="big">
+          <span class="g">没有评估，不做；</span><br>
+          <span class="g">没有资质，不做；</span><br>
+          <em>该转介的时候，不犹豫。</em>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- ============ 控制栏 ============ -->
+<div class="ui">
+  <div class="progress-track"><div id="progress"></div></div>
+  <div class="nav">
+    <button id="prev" title="上一页（←）">‹</button>
+    <span id="counter">1 / 11</span>
+    <button id="next" title="下一页（→）">›</button>
+    <button id="fs" title="全屏（F）" style="font-size:12px">⛶</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var stage   = document.getElementById('stage');
+  var slides  = Array.prototype.slice.call(stage.querySelectorAll('.slide'));
+  var counter = document.getElementById('counter');
+  var progress= document.getElementById('progress');
+  var idx = 0;
+
+  function render(){
+    slides.forEach(function(s,k){ s.classList.toggle('active', k===idx); });
+    counter.textContent = (idx+1) + ' / ' + slides.length;
+    progress.style.width = ((idx+1)/slides.length*100) + '%';
+  }
+  function go(n){
+    idx = Math.max(0, Math.min(slides.length-1, n));
+    render();
+  }
+
+  function fit(){
+    var s = Math.min(window.innerWidth/1300, window.innerHeight/770);
+    document.documentElement.style.setProperty('--s', s.toFixed(4));
+  }
+
+  document.getElementById('prev').addEventListener('click', function(){ go(idx-1); });
+  document.getElementById('next').addEventListener('click', function(){ go(idx+1); });
+  document.getElementById('fs').addEventListener('click', toggleFS);
+
+  function toggleFS(){
+    if(!document.fullscreenElement){
+      (document.documentElement.requestFullscreen || function(){}).call(document.documentElement);
+    }else{
+      (document.exitFullscreen || function(){}).call(document);
+    }
+  }
+
+  window.addEventListener('keydown', function(e){
+    var k = e.key;
+    if(['ArrowRight','ArrowDown','PageDown',' ','Enter'].indexOf(k) > -1){ e.preventDefault(); go(idx+1); }
+    else if(['ArrowLeft','ArrowUp','PageUp','Backspace'].indexOf(k) > -1){ e.preventDefault(); go(idx-1); }
+    else if(k === 'Home'){ e.preventDefault(); go(0); }
+    else if(k === 'End'){ e.preventDefault(); go(slides.length-1); }
+    else if(k === 'f' || k === 'F'){ e.preventDefault(); toggleFS(); }
+  });
+
+  // 触摸滑动
+  var sx = 0, sy = 0;
+  window.addEventListener('touchstart', function(e){
+    sx = e.changedTouches[0].clientX; sy = e.changedTouches[0].clientY;
+  }, {passive:true});
+  window.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].clientX - sx;
+    var dy = e.changedTouches[0].clientY - sy;
+    if(Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){
+      go(dx < 0 ? idx+1 : idx-1);
+    }
+  }, {passive:true});
+
+  window.addEventListener('resize', fit);
+
+  fit();
+  render();
+})();
+</script>
+</body>
+</html>
